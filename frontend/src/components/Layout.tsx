@@ -1,4 +1,4 @@
-import { ReactNode, Fragment } from 'react'
+import { ReactNode, Fragment, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '../hooks/useAuth'
 import Sidebar from './Sidebar'
@@ -11,6 +11,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   // Public routes that don't need authentication
   const publicRoutes = ['/', '/login', '/auth/callback']
@@ -40,7 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
   // Authenticated layout with sidebar and header
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar />
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="lg:pl-64">
         <Header />
         <main className="py-6">
