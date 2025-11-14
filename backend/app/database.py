@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Database URL - Use custom DB_URL to avoid Railway auto-overwrite
-DATABASE_URL = os.getenv("DB_URL") or os.getenv("DATABASE_URL", "sqlite:///./sedem.db")
+# Database URL - Force use of SEDEM_DATABASE_URL to avoid Railway interference
+SEDEM_DATABASE_URL = os.getenv("SEDEM_DATABASE_URL", "sqlite:///./sedem.db")
+DATABASE_URL = SEDEM_DATABASE_URL
 
 # Create SQLAlchemy engine
 if DATABASE_URL.startswith("sqlite"):
