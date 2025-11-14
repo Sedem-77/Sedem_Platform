@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Database URL
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./sedem.db")
+# Database URL - Use custom DB_URL to avoid Railway auto-overwrite
+DATABASE_URL = os.getenv("DB_URL") or os.getenv("DATABASE_URL", "sqlite:///./sedem.db")
 
 # Create SQLAlchemy engine
 if DATABASE_URL.startswith("sqlite"):
