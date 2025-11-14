@@ -1,21 +1,22 @@
 # Sedem - Research Productivity Platform
 
-Sedem is a comprehensive web-based research productivity and project management platform designed for researchers, data scientists, and analysts who use R, Python, and GitHub for their projects.
+A comprehensive research productivity and project management platform with GitHub integration.
 
-## 🔹 Core Purpose
+## � Features
 
-- Help users organize, track, and execute research projects with well-defined milestones
-- Automatically remind users daily to make progress on active projects
-- Encourage consistent GitHub pushes and code documentation
-- Integrate R and Python workflows, detecting duplicated tasks or analyses between scripts
-- Provide a clean, research-oriented dashboard for managing projects, scripts, and progress over time
+- **Project Management**: Organize research projects with milestones and tasks
+- **GitHub Integration**: Automatic sync with repositories, commit tracking
+- **Duplicate Detection**: Smart analysis to prevent duplicate work
+- **Daily Reminders**: Automated notifications to maintain consistency
+- **Analytics Dashboard**: Visual insights into research progress
+- **Task Tracking**: Comprehensive task management with priorities and deadlines
 
-## 🚀 Features
+## 🛠️ Technology Stack
 
-### 1. Dashboard
-- Displays active projects, progress indicators, upcoming tasks, and last GitHub push
-- "Today's Focus" panel with daily task summaries and recommendations
-- Activity timeline: recent commits, analysis completions, or new milestones
+- **Backend**: FastAPI + SQLAlchemy + PostgreSQL
+- **Frontend**: Next.js + TypeScript + TailwindCSS  
+- **Authentication**: GitHub OAuth2
+- **Deployment**: Railway (backend) + Vercel (frontend)
 
 ### 2. Project & Task Manager
 - Create research projects with title, abstract, category, keywords, and tags
@@ -177,6 +178,6 @@ Please read our contributing guidelines and submit pull requests for any improve
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+---
 
-For support, please open an issue on GitHub or contact the development team.
+Built with ❤️ for researchers everywhere.
