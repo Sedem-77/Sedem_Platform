@@ -43,7 +43,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen bg-gray-50">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="lg:pl-64">
-        <Header />
+        <Header setSidebarOpen={setSidebarOpen} />
         <main className="py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {children}
