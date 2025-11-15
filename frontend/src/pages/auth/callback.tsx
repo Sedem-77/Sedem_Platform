@@ -11,13 +11,24 @@ const AuthCallback: NextPage = () => {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const { code, error: authError } = router.query
+      const { code, error: authError, state } = router.query
 
       if (authError) {
         setError('Authentication was cancelled or failed')
         setIsLoading(false)
         return
       }
+
+      // Verify state parameter to prevent CSRF attacks
+      const storedState = sessionStorage.getItem('oauth_state')
+      if (state !== storedState) {
+        setError('Invalid state parameter - possible security issue')
+        setIsLoading(false)
+        return
+      }
+
+      // Clean up stored state
+      sessionStorage.removeItem('oauth_state')
 
       if (code && typeof code === 'string') {
         try {

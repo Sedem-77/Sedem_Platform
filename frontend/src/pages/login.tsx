@@ -24,8 +24,12 @@ const Login: NextPage = () => {
 
     const redirectUri = `${window.location.origin}/auth/callback`
     const scope = 'read:user user:email repo'
+    const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     
-    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`
+    // Store state in sessionStorage for verification
+    sessionStorage.setItem('oauth_state', state)
+    
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&state=${state}`
   }
 
   if (loading) {
