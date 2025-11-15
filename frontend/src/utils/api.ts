@@ -357,6 +357,7 @@ export const endpoints = {
     link: (repoId: number) => `/api/github/repositories/${repoId}/link`,
     commits: (repoId: number) => `/api/github/repositories/${repoId}/commits`,
     activity: '/api/github/activity',
+    analytics: '/api/github/analytics',
   },
   commits: {
     heatmap: '/api/commits/activity/heatmap',

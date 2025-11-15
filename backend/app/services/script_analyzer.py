@@ -4,11 +4,16 @@ import ast
 import re
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
-import pandas as pd
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 import asyncio
+
+try:
+    import pandas as pd
+    import numpy as np
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+    HAS_ML_LIBS = True
+except ImportError:
+    HAS_ML_LIBS = False
 
 from ..database import SessionLocal
 from ..models import ScriptFile, DuplicateAlert, Project, User
@@ -17,11 +22,14 @@ from ..services.notification_service import notification_service
 class ScriptAnalyzer:
     def __init__(self):
         self.supported_extensions = {'.py', '.R', '.ipynb'}
-        self.vectorizer = TfidfVectorizer(
-            stop_words='english',
-            max_features=1000,
-            ngram_range=(1, 2)
-        )
+        if HAS_ML_LIBS:
+            self.vectorizer = TfidfVectorizer(
+                stop_words='english',
+                max_features=1000,
+                ngram_range=(1, 2)
+            )
+        else:
+            self.vectorizer = None
     
     async def analyze_all_scripts(self):
         """Analyze all scripts across all projects for duplicates"""

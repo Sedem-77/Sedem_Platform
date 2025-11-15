@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List
 
 from ..database import get_database
-from ..models import User, Project, Task, Activity, GitHubCommit
+from ..models import User, Project, Task, Activity, GitHubCommit, GitHubRepo
 from ..services.github_service import GitHubService
 
 router = APIRouter()

@@ -1,11 +1,16 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from jinja2 import Template
 import os
 from datetime import datetime, timedelta
 import asyncio
 from typing import List
+
+try:
+    from jinja2 import Template
+    HAS_JINJA2 = True
+except ImportError:
+    HAS_JINJA2 = False
 
 from ..database import SessionLocal
 from ..models import User, Project, Notification, Task, GitHubRepo

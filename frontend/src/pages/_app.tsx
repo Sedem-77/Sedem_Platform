@@ -4,7 +4,7 @@ import { ReactQueryDevtools } from 'react-query/devtools'
 import { Toaster } from 'react-hot-toast'
 import { useState, useEffect } from 'react'
 import { AuthProvider } from '../hooks/useAuth'
-import Layout from '../components/Layout'
+import { Layout } from '../components'
 import '../styles/globals.css'
 
 function MyApp({ Component, pageProps }: AppProps) {
