@@ -151,8 +151,9 @@ class ScriptFile(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
-    duplicates = relationship("DuplicateAlert", back_populates="script_file")
+    # Relationships - Fixed foreign key ambiguity
+    duplicates_as_primary = relationship("DuplicateAlert", foreign_keys="DuplicateAlert.script_file_id", back_populates="script_file")
+    duplicates_as_similar = relationship("DuplicateAlert", foreign_keys="DuplicateAlert.similar_file_id", back_populates="similar_file")
 
 class DuplicateAlert(Base):
     __tablename__ = "duplicate_alerts"
@@ -168,8 +169,9 @@ class DuplicateAlert(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     resolved_at = Column(DateTime)
     
-    # Relationships
-    script_file = relationship("ScriptFile", back_populates="duplicates", foreign_keys=[script_file_id])
+    # Relationships - Fixed foreign key ambiguity
+    script_file = relationship("ScriptFile", foreign_keys=[script_file_id], back_populates="duplicates_as_primary")
+    similar_file = relationship("ScriptFile", foreign_keys=[similar_file_id], back_populates="duplicates_as_similar")
 
 class Notification(Base):
     __tablename__ = "notifications"
