@@ -52,17 +52,33 @@ const GitHubPage: NextPage = () => {
   const handleSync = async () => {
     try {
       setSyncing(true)
+      console.log('Starting GitHub repository sync...')
+      
       const response = await api.post(endpoints.github.sync)
       
       if (response.success) {
-        toast.success('Repositories synced successfully!')
+        const data = response.data as any
+        toast.success(`Successfully synced ${data?.synced_repositories || 0} repositories!`)
         await fetchData() // Refresh the data
       } else {
+        console.error('Sync failed:', response.error)
         toast.error(response.error || 'Failed to sync repositories')
       }
     } catch (error) {
-      console.error('Sync error:', error)
-      toast.error('Error syncing repositories')
+      console.error('GitHub sync error:', error)
+      
+      // More specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('Unauthorized')) {
+          toast.error('GitHub authentication expired. Please log out and log back in.')
+        } else if (error.message.includes('403')) {
+          toast.error('GitHub API rate limit exceeded. Please try again later.')
+        } else {
+          toast.error(`Sync failed: ${error.message}`)
+        }
+      } else {
+        toast.error('Error syncing repositories. Please check your connection.')
+      }
     } finally {
       setSyncing(false)
     }

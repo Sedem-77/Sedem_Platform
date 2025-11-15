@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_, or_
 from datetime import datetime, timedelta, date
@@ -11,8 +12,12 @@ from ..services.github_service import GitHubService
 
 router = APIRouter()
 github_service = GitHubService()
+security = HTTPBearer()
 
-async def get_current_user(credentials, db: Session = Depends(get_database)):
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_database)
+):
     """Get current authenticated user"""
     payload = github_service.verify_jwt_token(credentials.credentials)
     user_id = payload.get("user_id")
