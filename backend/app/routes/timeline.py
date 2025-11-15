@@ -90,7 +90,7 @@ async def get_current_user(
     
     return db_user
 
-@router.get("/timeline")
+@router.get("")
 async def get_timeline(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_database),
@@ -384,7 +384,7 @@ async def get_timeline(
         print(f"Error getting timeline: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch timeline")
 
-@router.get("/timeline/summary")
+@router.get("/summary")
 async def get_timeline_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_database),

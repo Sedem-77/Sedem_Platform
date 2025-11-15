@@ -43,6 +43,8 @@ const TimelinePage: NextPage = () => {
       setLoading(true)
       setError(null)
       
+      console.log('Fetching timeline data...', { activityType, projectFilter, searchQuery, dateRange, currentPage })
+      
       const params = new URLSearchParams({
         activity_type: activityType,
         limit: itemsPerPage.toString(),
@@ -58,11 +60,16 @@ const TimelinePage: NextPage = () => {
         params.append('search', searchQuery.trim())
       }
       
-      const response = await api.get<TimelineData>(`${endpoints.timeline.activities}?${params}`)
+      const url = `${endpoints.timeline.activities}?${params}`
+      console.log('Timeline API URL:', url)
+      
+      const response = await api.get<TimelineData>(url)
+      console.log('Timeline API response:', response)
       
       if (response.success && response.data) {
         setTimelineData(response.data)
       } else {
+        console.error('Timeline API error:', response.error)
         setError(response.error || 'Failed to load timeline data')
       }
     } catch (error) {

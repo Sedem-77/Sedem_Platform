@@ -427,7 +427,7 @@ export const endpoints = {
     achievements: '/api/commits/activity/achievements',
   },
   timeline: {
-    activities: '/api/timeline/timeline',
+    activities: '/api/timeline',
     summary: '/api/timeline/summary',
   },
 }
