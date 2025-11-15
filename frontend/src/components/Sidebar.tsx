@@ -7,6 +7,7 @@ import {
   ChartBarIcon,
   CogIcon,
   XMarkIcon,
+  CodeBracketIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Projects', href: '/projects', icon: FolderIcon },
   { name: 'Tasks', href: '/tasks', icon: ClipboardDocumentListIcon },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
+  { name: 'GitHub', href: '/github', icon: CodeBracketIcon },
   { name: 'Settings', href: '/settings', icon: CogIcon },
 ]
 

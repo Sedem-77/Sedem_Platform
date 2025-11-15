@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 import asyncio
 from typing import Dict, List, Any, Optional
+from sqlalchemy.orm import Session
 
 class GitHubService:
     def __init__(self):
@@ -164,6 +165,7 @@ class GitHubService:
     
     async def _sync_user_repositories(self, db, user):
         """Sync repositories for a specific user"""
+        from ..models import GitHubRepo, GitHubCommit
         try:
             # Get user's repositories from GitHub
             repos = await self.get_user_repositories(user.github_access_token)
@@ -195,6 +197,7 @@ class GitHubService:
     
     async def _sync_repository_commits(self, db, repo, access_token):
         """Sync commits for a specific repository"""
+        from ..models import GitHubCommit
         try:
             owner, repo_name = repo.full_name.split("/")
             

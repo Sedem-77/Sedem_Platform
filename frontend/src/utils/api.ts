@@ -214,6 +214,44 @@ export interface Analytics {
   }>
 }
 
+export interface GitHubRepository {
+  id: number
+  name: string
+  full_name: string
+  url: string
+  default_branch: string
+  last_push_date?: string
+  last_commit_sha?: string
+  project_id?: number
+  created_at: string
+  description?: string
+  language?: string
+  stars_count?: number
+  forks_count?: number
+  is_private?: boolean
+}
+
+export interface GitHubCommit {
+  id: number
+  sha: string
+  message: string
+  author_name: string
+  author_email: string
+  commit_date: string
+  files_changed?: string[]
+  additions: number
+  deletions: number
+  repo_id: number
+}
+
+export interface GitHubActivity {
+  date: string
+  commits: number
+  repositories: string[]
+  total_additions: number
+  total_deletions: number
+}
+
 // API endpoints
 export const endpoints = {
   auth: {
@@ -240,5 +278,12 @@ export const endpoints = {
     weekly: '/api/analytics/weekly-summary',
     trends: '/api/analytics/trends',
     timeline: '/api/analytics/timeline',
+  },
+  github: {
+    repositories: '/api/github/repositories',
+    sync: '/api/github/sync',
+    link: (repoId: number) => `/api/github/repositories/${repoId}/link`,
+    commits: (repoId: number) => `/api/github/repositories/${repoId}/commits`,
+    activity: '/api/github/activity',
   },
 }

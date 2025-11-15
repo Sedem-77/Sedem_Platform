@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from ..database import get_database
-from ..models import GitHubRepo, Project, User
+from ..models import GitHubRepo, GitHubCommit, Project, User
 from ..services.github_service import GitHubService
 
 router = APIRouter()
