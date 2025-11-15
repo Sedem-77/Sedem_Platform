@@ -16,6 +16,15 @@ github_service = GitHubService()
 class GitHubLoginRequest(BaseModel):
     code: str
 
+@router.get("/debug")
+async def debug_github_config():
+    """Debug endpoint to check GitHub configuration"""
+    return {
+        "client_id": github_service.client_id,
+        "client_secret_set": bool(github_service.client_secret),
+        "client_secret_length": len(github_service.client_secret) if github_service.client_secret else 0
+    }
+
 @router.post("/github/login")
 async def github_login(request: GitHubLoginRequest, db: Session = Depends(get_database)):
     """Exchange GitHub authorization code for access token and create/update user"""
