@@ -324,6 +324,67 @@ export interface CodingAchievements {
   }
 }
 
+// Timeline types
+export interface TimelineActivity {
+  id: string
+  type: string
+  title: string
+  description: string
+  timestamp: string
+  metadata: Record<string, any>
+  project_id?: number
+  project_name?: string
+  entity_id?: number
+  icon?: string
+  color?: string
+  link?: string
+}
+
+export interface TimelineData {
+  activities: TimelineActivity[]
+  pagination: {
+    total: number
+    limit: number
+    offset: number
+    has_more: boolean
+  }
+  filters: {
+    activity_type: string
+    project_id?: number
+    start_date: string
+    end_date: string
+    search?: string
+  }
+}
+
+export interface TimelineSummary {
+  period: {
+    days: number
+    start_date: string
+    end_date: string
+  }
+  summary: {
+    projects_created: number
+    tasks_created: number
+    tasks_completed: number
+    commits_made: number
+    total_activities: number
+    completion_rate: number
+  }
+  daily_breakdown: Array<{
+    date: string
+    tasks: number
+    commits: number
+    total: number
+  }>
+  activity_types: {
+    projects: number
+    tasks: number
+    commits: number
+    completed_tasks: number
+  }
+}
+
 // API endpoints
 export const endpoints = {
   auth: {
@@ -364,5 +425,9 @@ export const endpoints = {
     trends: '/api/commits/activity/trends',
     languages: '/api/commits/activity/languages',
     achievements: '/api/commits/activity/achievements',
+  },
+  timeline: {
+    activities: '/api/timeline/timeline',
+    summary: '/api/timeline/summary',
   },
 }

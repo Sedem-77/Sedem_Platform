@@ -9,6 +9,7 @@ import {
   XMarkIcon,
   CodeBracketIcon,
   FireIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -21,6 +22,7 @@ interface SidebarProps {
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Timeline', href: '/timeline', icon: ClockIcon },
   { name: 'Projects', href: '/projects', icon: FolderIcon },
   { name: 'Tasks', href: '/tasks', icon: ClipboardDocumentListIcon },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
