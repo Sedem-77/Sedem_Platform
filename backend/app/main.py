@@ -29,7 +29,12 @@ logger = setup_logger()
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://sedem-web.vercel.app"],
+    allow_origins=[
+        "http://localhost:3000", 
+        "https://sedem-platform.vercel.app",
+        "https://sedem-platform-git-main-denis-folitses-projects.vercel.app",
+        "https://sedem-platform-gg2t3sfbb-denis-folitses-projects.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
