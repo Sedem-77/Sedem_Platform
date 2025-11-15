@@ -1,7 +1,7 @@
 // API utility functions for making HTTP requests to the backend
 
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://sedem-platform-production.up.railway.app' 
+  ? process.env.NEXT_PUBLIC_API_URL || 'https://web-production-bff53.up.railway.app'
   : 'http://localhost:8000'
 
 export interface ApiResponse<T> {
@@ -217,9 +217,9 @@ export interface Analytics {
 // API endpoints
 export const endpoints = {
   auth: {
-    me: '/auth/me',
-    login: '/auth/login',
-    callback: '/auth/callback',
+    me: '/api/auth/me',
+    login: '/api/auth/github/login',
+    callback: '/api/auth/github/login',
   },
   projects: {
     list: '/api/projects',
