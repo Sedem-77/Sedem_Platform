@@ -59,7 +59,7 @@ const AnalyticsPage: NextPage = () => {
           daily_activity: []
         })
       } else {
-        toast.error('Failed to fetch analytics data')
+        console.log('Analytics data not available')
         // Set default empty data
         setAnalytics({
           productivity: {
