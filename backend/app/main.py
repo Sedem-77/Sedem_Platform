@@ -9,12 +9,24 @@ from .database import engine, SessionLocal, Base
 from .routes import auth, projects, tasks, analytics, github_integration
 from .services.scheduler import start_scheduler
 from .utils.logger import setup_logger
+from .models import *  # Import all models to ensure tables are created
 
 # Load environment variables
 load_dotenv()
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables with error handling
+try:
+    print("Creating database tables...")
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created successfully!")
+except Exception as e:
+    print(f"Error creating database tables: {e}")
+    # Try to create tables again in case of temporary issue
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("Database tables created on retry!")
+    except Exception as retry_error:
+        print(f"Failed to create tables on retry: {retry_error}")
 
 # Initialize FastAPI app
 app = FastAPI(
