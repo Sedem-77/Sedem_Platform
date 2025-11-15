@@ -1,9 +1,83 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { NextPage } from 'next'
 import Head from 'next/head'
+import Link from 'next/link'
 import { withAuth } from '../hooks/useAuth'
+import { api, endpoints, type Project, type Task, type Analytics } from '../utils/api'
 
 const Dashboard: NextPage = () => {
+  const [stats, setStats] = useState({
+    activeProjects: 0,
+    completedTasks: 0,
+    dueTasks: 0,
+    githubCommits: 0
+  })
+  const [recentProjects, setRecentProjects] = useState<Project[]>([])
+  const [recentTasks, setRecentTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch projects
+      const projectsResponse = await api.get<Project[]>(endpoints.projects.list)
+      if (projectsResponse.success && projectsResponse.data) {
+        const projects = projectsResponse.data
+        setRecentProjects(projects.slice(0, 3)) // Show last 3 projects
+        
+        // Calculate active projects
+        const activeProjects = projects.filter(p => p.status === 'active').length
+        setStats(prev => ({ ...prev, activeProjects }))
+      }
+
+      // Fetch tasks
+      const tasksResponse = await api.get<Task[]>(endpoints.tasks.list)
+      if (tasksResponse.success && tasksResponse.data) {
+        const tasks = tasksResponse.data
+        setRecentTasks(tasks.slice(0, 3)) // Show last 3 tasks
+        
+        // Calculate task stats
+        const completedTasks = tasks.filter(t => t.status === 'completed').length
+        const now = new Date()
+        const dueTasks = tasks.filter(t => 
+          t.due_date && 
+          new Date(t.due_date) <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) && // Due within 7 days
+          t.status !== 'completed'
+        ).length
+        
+        setStats(prev => ({ 
+          ...prev, 
+          completedTasks, 
+          dueTasks 
+        }))
+      }
+
+      // Fetch analytics for GitHub commits
+      const analyticsResponse = await api.get<Analytics['productivity']>(endpoints.analytics.productivity)
+      if (analyticsResponse.success && analyticsResponse.data) {
+        setStats(prev => ({ 
+          ...prev, 
+          githubCommits: analyticsResponse.data!.total_commits 
+        }))
+      }
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-500"></div>
+      </div>
+    )
+  }
   return (
     <>
       <Head>
@@ -37,7 +111,7 @@ const Dashboard: NextPage = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Active Projects</dt>
-                    <dd className="text-lg font-medium text-gray-900">5</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.activeProjects}</dd>
                   </dl>
                 </div>
               </div>
@@ -57,7 +131,7 @@ const Dashboard: NextPage = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Completed Tasks</dt>
-                    <dd className="text-lg font-medium text-gray-900">23</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.completedTasks}</dd>
                   </dl>
                 </div>
               </div>
@@ -77,7 +151,7 @@ const Dashboard: NextPage = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">Due This Week</dt>
-                    <dd className="text-lg font-medium text-gray-900">8</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.dueTasks}</dd>
                   </dl>
                 </div>
               </div>
@@ -97,7 +171,7 @@ const Dashboard: NextPage = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">GitHub Commits</dt>
-                    <dd className="text-lg font-medium text-gray-900">47</dd>
+                    <dd className="text-lg font-medium text-gray-900">{stats.githubCommits}</dd>
                   </dl>
                 </div>
               </div>
@@ -152,9 +226,9 @@ const Dashboard: NextPage = () => {
               </div>
 
               <div className="mt-6">
-                <button className="w-full bg-primary-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors">
+                <Link href="/tasks" className="block w-full bg-primary-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors text-center">
                   View All Tasks
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -230,9 +304,9 @@ const Dashboard: NextPage = () => {
         <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900">Active Projects</h2>
-            <button className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors">
-              New Project
-            </button>
+            <Link href="/projects" className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 transition-colors">
+              View Projects
+            </Link>
           </div>
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

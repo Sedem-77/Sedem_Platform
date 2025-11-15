@@ -1,90 +1,59 @@
 import React, { useState, useEffect } from 'react'
 import { NextPage } from 'next'
 import Head from 'next/head'
+import toast from 'react-hot-toast'
 import { withAuth } from '../hooks/useAuth'
 import { PlusIcon, CheckCircleIcon, ClockIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-
-interface Task {
-  id: number
-  title: string
-  description: string
-  priority: 'low' | 'medium' | 'high'
-  status: 'todo' | 'in_progress' | 'completed'
-  due_date?: string
-  created_at: string
-  project_title: string
-  project_id: number
-}
+import { api, endpoints, type Task, type Project } from '../utils/api'
 
 const Tasks: NextPage = () => {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterPriority, setFilterPriority] = useState<string>('all')
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+
+  // Form state for creating new task
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    project_id: '',
+    due_date: ''
+  })
 
   useEffect(() => {
-    // TODO: Fetch tasks from API
-    // For now, show placeholder data
-    setTasks([
-      {
-        id: 1,
-        title: "Complete data analysis for GDP study",
-        description: "Perform regression analysis on the GDP and FDI dataset using Python",
-        priority: 'high',
-        status: 'in_progress',
-        due_date: "2024-11-20",
-        created_at: "2024-11-10",
-        project_title: "GDP-FDI Nexus Analysis",
-        project_id: 1
-      },
-      {
-        id: 2,
-        title: "Review regression model results",
-        description: "Validate the statistical significance of the regression coefficients",
-        priority: 'medium',
-        status: 'todo',
-        due_date: "2024-11-22",
-        created_at: "2024-11-10",
-        project_title: "GDP-FDI Nexus Analysis",
-        project_id: 1
-      },
-      {
-        id: 3,
-        title: "Update project documentation",
-        description: "Document methodology and findings in the research paper",
-        priority: 'low',
-        status: 'todo',
-        due_date: "2024-11-25",
-        created_at: "2024-11-10",
-        project_title: "GDP-FDI Nexus Analysis",
-        project_id: 1
-      },
-      {
-        id: 4,
-        title: "Collect education policy data",
-        description: "Gather data from government databases and education institutions",
-        priority: 'high',
-        status: 'completed',
-        due_date: "2024-11-15",
-        created_at: "2024-10-20",
-        project_title: "Education Impact Study",
-        project_id: 2
-      },
-      {
-        id: 5,
-        title: "Design survey questionnaire",
-        description: "Create questionnaire for student outcome measurement",
-        priority: 'medium',
-        status: 'in_progress',
-        due_date: "2024-11-28",
-        created_at: "2024-11-05",
-        project_title: "Education Impact Study",
-        project_id: 2
-      }
-    ])
-    setLoading(false)
+    fetchTasks()
+    fetchProjects()
   }, [])
+
+  const fetchTasks = async () => {
+    try {
+      const response = await api.get<Task[]>(endpoints.tasks.list)
+      if (response.success && response.data) {
+        setTasks(response.data)
+      } else {
+        toast.error(response.error || 'Failed to fetch tasks')
+      }
+    } catch (error) {
+      toast.error('Error fetching tasks')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get<Project[]>(endpoints.projects.list)
+      if (response.success && response.data) {
+        setProjects(response.data)
+      }
+    } catch (error) {
+      console.error('Error fetching projects')
+    }
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -128,6 +97,55 @@ const Tasks: NextPage = () => {
     const priorityMatch = filterPriority === 'all' || task.priority === filterPriority
     return statusMatch && priorityMatch
   })
+
+  const createTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreateLoading(true)
+
+    try {
+      const response = await api.post<Task>(endpoints.tasks.create, formData)
+      if (response.success && response.data) {
+        setTasks(prev => [response.data!, ...prev])
+        setShowCreateModal(false)
+        setFormData({ title: '', description: '', priority: 'medium', project_id: '', due_date: '' })
+        toast.success('Task created successfully!')
+      } else {
+        toast.error(response.error || 'Failed to create task')
+      }
+    } catch (error) {
+      toast.error('Error creating task')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  const updateTaskStatus = async (taskId: number, newStatus: 'todo' | 'in_progress' | 'completed') => {
+    try {
+      const response = await api.put<Task>(endpoints.tasks.update(taskId), { status: newStatus })
+      if (response.success && response.data) {
+        setTasks(prev => prev.map(task => 
+          task.id === taskId ? response.data! : task
+        ))
+        toast.success('Task updated successfully!')
+      } else {
+        toast.error(response.error || 'Failed to update task')
+      }
+    } catch (error) {
+      toast.error('Error updating task')
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const getProjectTitle = (projectId: number) => {
+    const project = projects.find(p => p.id === projectId)
+    return project?.title || 'Unknown Project'
+  }
 
   const isOverdue = (dueDate?: string) => {
     if (!dueDate) return false
@@ -217,7 +235,7 @@ const Tasks: NextPage = () => {
                         {task.description}
                       </p>
                       <div className="flex items-center text-sm text-gray-500">
-                        <span className="font-medium">{task.project_title}</span>
+                        <span className="font-medium">{getProjectTitle(task.project_id)}</span>
                         {task.due_date && (
                           <>
                             <span className="mx-2">•</span>
@@ -242,13 +260,27 @@ const Tasks: NextPage = () => {
                 
                 <div className="mt-4 flex space-x-2">
                   {task.status === 'todo' && (
-                    <button className="bg-blue-50 text-blue-700 px-3 py-1 rounded text-sm font-medium hover:bg-blue-100 transition-colors">
+                    <button 
+                      onClick={() => updateTaskStatus(task.id, 'in_progress')}
+                      className="bg-blue-50 text-blue-700 px-3 py-1 rounded text-sm font-medium hover:bg-blue-100 transition-colors"
+                    >
                       Start Task
                     </button>
                   )}
                   {task.status === 'in_progress' && (
-                    <button className="bg-green-50 text-green-700 px-3 py-1 rounded text-sm font-medium hover:bg-green-100 transition-colors">
+                    <button 
+                      onClick={() => updateTaskStatus(task.id, 'completed')}
+                      className="bg-green-50 text-green-700 px-3 py-1 rounded text-sm font-medium hover:bg-green-100 transition-colors"
+                    >
                       Mark Complete
+                    </button>
+                  )}
+                  {task.status === 'completed' && (
+                    <button 
+                      onClick={() => updateTaskStatus(task.id, 'in_progress')}
+                      className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded text-sm font-medium hover:bg-yellow-100 transition-colors"
+                    >
+                      Reopen
                     </button>
                   )}
                   <button className="bg-gray-50 text-gray-700 px-3 py-1 rounded text-sm font-medium hover:bg-gray-100 transition-colors">
@@ -291,20 +323,110 @@ const Tasks: NextPage = () => {
           </div>
         )}
 
-        {/* Create Task Modal Placeholder */}
+        {/* Create Task Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Task</h3>
-              <p className="text-gray-600 mb-4">
-                Task creation functionality will be implemented in the next update.
-              </p>
-              <button 
-                onClick={() => setShowCreateModal(false)}
-                className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                Close
-              </button>
+              
+              <form onSubmit={createTask} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Task Title *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Enter task title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Describe the task"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Priority
+                    </label>
+                    <select
+                      name="priority"
+                      value={formData.priority}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Project *
+                    </label>
+                    <select
+                      name="project_id"
+                      value={formData.project_id}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      <option value="">Select project</option>
+                      {projects.map(project => (
+                        <option key={project.id} value={project.id}>
+                          {project.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    name="due_date"
+                    value={formData.due_date}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={createLoading}
+                    className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  >
+                    {createLoading ? 'Creating...' : 'Create Task'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

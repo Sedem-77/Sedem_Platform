@@ -1,70 +1,43 @@
 import React, { useState, useEffect } from 'react'
 import { NextPage } from 'next'
 import Head from 'next/head'
+import toast from 'react-hot-toast'
 import { withAuth } from '../hooks/useAuth'
 import { PlusIcon, FolderOpenIcon, CalendarIcon, UserIcon } from '@heroicons/react/24/outline'
-
-interface Project {
-  id: number
-  title: string
-  description: string
-  category: string
-  progress_percentage: number
-  status: string
-  created_at: string
-  due_date?: string
-  owner_name: string
-  task_count: number
-}
+import { api, endpoints, type Project } from '../utils/api'
 
 const Projects: NextPage = () => {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+
+  // Form state for creating new project
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    due_date: ''
+  })
 
   useEffect(() => {
-    // TODO: Fetch projects from API
-    // For now, show placeholder data
-    setProjects([
-      {
-        id: 1,
-        title: "GDP-FDI Nexus Analysis",
-        description: "Analyzing the relationship between GDP growth and foreign direct investment in emerging markets",
-        category: "Economics",
-        progress_percentage: 75,
-        status: "active",
-        created_at: "2024-11-01",
-        due_date: "2024-12-15",
-        owner_name: "You",
-        task_count: 8
-      },
-      {
-        id: 2,
-        title: "Education Impact Study",
-        description: "Measuring the impact of education policies on student outcomes",
-        category: "Education",
-        progress_percentage: 45,
-        status: "active",
-        created_at: "2024-10-15",
-        due_date: "2025-01-20",
-        owner_name: "You",
-        task_count: 12
-      },
-      {
-        id: 3,
-        title: "Climate Data Analysis",
-        description: "Analyzing temperature trends and climate patterns over the past decade",
-        category: "Environmental",
-        progress_percentage: 10,
-        status: "planning",
-        created_at: "2024-11-10",
-        due_date: "2025-03-30",
-        owner_name: "You",
-        task_count: 15
-      }
-    ])
-    setLoading(false)
+    fetchProjects()
   }, [])
+
+  const fetchProjects = async () => {
+    try {
+      const response = await api.get<Project[]>(endpoints.projects.list)
+      if (response.success && response.data) {
+        setProjects(response.data)
+      } else {
+        toast.error(response.error || 'Failed to fetch projects')
+      }
+    } catch (error) {
+      toast.error('Error fetching projects')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,6 +50,34 @@ const Projects: NextPage = () => {
       default:
         return 'bg-yellow-100 text-yellow-800'
     }
+  }
+
+  const createProject = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setCreateLoading(true)
+
+    try {
+      const response = await api.post<Project>(endpoints.projects.create, formData)
+      if (response.success && response.data) {
+        setProjects(prev => [response.data!, ...prev])
+        setShowCreateModal(false)
+        setFormData({ title: '', description: '', category: '', due_date: '' })
+        toast.success('Project created successfully!')
+      } else {
+        toast.error(response.error || 'Failed to create project')
+      }
+    } catch (error) {
+      toast.error('Error creating project')
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }))
   }
 
   const getProgressColor = (progress: number) => {
@@ -152,17 +153,21 @@ const Projects: NextPage = () => {
                 </div>
 
                 <div className="space-y-2 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <FolderOpenIcon className="w-4 h-4 mr-2" />
-                    <span>{project.category}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    <span>Due {new Date(project.due_date || '').toLocaleDateString()}</span>
-                  </div>
+                  {project.category && (
+                    <div className="flex items-center">
+                      <FolderOpenIcon className="w-4 h-4 mr-2" />
+                      <span>{project.category}</span>
+                    </div>
+                  )}
+                  {project.due_date && (
+                    <div className="flex items-center">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      <span>Due {new Date(project.due_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
                   <div className="flex items-center">
                     <UserIcon className="w-4 h-4 mr-2" />
-                    <span>{project.task_count} tasks</span>
+                    <span>{project.task_count || 0} tasks</span>
                   </div>
                 </div>
 
@@ -193,20 +198,93 @@ const Projects: NextPage = () => {
           </div>
         )}
 
-        {/* Create Project Modal Placeholder */}
+        {/* Create Project Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Project</h3>
-              <p className="text-gray-600 mb-4">
-                Project creation functionality will be implemented in the next update.
-              </p>
-              <button 
-                onClick={() => setShowCreateModal(false)}
-                className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                Close
-              </button>
+              
+              <form onSubmit={createProject} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Project Title *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Enter project title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Describe your research project"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="">Select category</option>
+                    <option value="Economics">Economics</option>
+                    <option value="Education">Education</option>
+                    <option value="Environmental">Environmental</option>
+                    <option value="Health">Health</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Social Sciences">Social Sciences</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    name="due_date"
+                    value={formData.due_date}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={createLoading}
+                    className="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50"
+                  >
+                    {createLoading ? 'Creating...' : 'Create Project'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

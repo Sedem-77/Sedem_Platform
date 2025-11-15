@@ -1,18 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useRouter } from 'next/router'
-import axios from 'axios'
-import Cookies from 'js-cookie'
 import toast from 'react-hot-toast'
-
-interface User {
-  id: number
-  username: string
-  email: string
-  full_name?: string
-  avatar_url?: string
-  created_at: string
-  is_active: boolean
-}
+import { api, endpoints, type User } from '../utils/api'
 
 interface AuthContextType {
   user: User | null
@@ -32,16 +21,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-
-  // Configure axios defaults
-  useEffect(() => {
-    const token = Cookies.get('auth_token')
-    if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-    }
-  }, [])
-
   // Check for existing authentication on mount
   useEffect(() => {
     checkAuth()
@@ -49,18 +28,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const checkAuth = async () => {
     try {
-      const token = Cookies.get('auth_token')
+      const token = localStorage.getItem('auth_token')
       if (!token) {
         setLoading(false)
         return
       }
 
-      const response = await axios.get(`${API_URL}/api/auth/me`)
-      setUser(response.data)
+      const response = await api.get<User>(endpoints.auth.me)
+      if (response.success && response.data) {
+        setUser(response.data)
+      } else {
+        // Token is invalid, remove it
+        api.clearToken()
+      }
     } catch (error) {
       // Token is invalid, remove it
-      Cookies.remove('auth_token')
-      delete axios.defaults.headers.common['Authorization']
+      api.clearToken()
     } finally {
       setLoading(false)
     }
@@ -69,15 +52,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = async (code: string) => {
     try {
       setLoading(true)
-      const response = await axios.post(`${API_URL}/api/auth/github/login`, { code })
+      const response = await api.post<{access_token: string, user: User}>(endpoints.auth.callback, { code })
       
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Login failed')
+      }
+
       const { access_token, user: userData } = response.data
 
-      // Store token in cookie
-      Cookies.set('auth_token', access_token, { expires: 30 }) // 30 days
-      
-      // Set axios default authorization header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+      // Store token and set it in API client
+      api.setToken(access_token)
       
       // Set user data
       setUser(userData)
@@ -88,7 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       router.push('/dashboard')
     } catch (error: any) {
       console.error('Login error:', error)
-      toast.error(error.response?.data?.detail || 'Login failed')
+      toast.error(error.message || 'Login failed')
       throw error
     } finally {
       setLoading(false)
@@ -97,20 +81,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
-      // Call logout endpoint
-      await axios.post(`${API_URL}/api/auth/logout`)
-    } catch (error) {
-      // Ignore errors, logout anyway
-    } finally {
-      // Clear local state
-      Cookies.remove('auth_token')
-      delete axios.defaults.headers.common['Authorization']
+      // Clear local state first
+      api.clearToken()
       setUser(null)
       
       toast.success('Successfully logged out')
       
       // Redirect to login
       router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
     }
   }
 

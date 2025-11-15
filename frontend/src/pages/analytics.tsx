@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { NextPage } from 'next'
 import Head from 'next/head'
+import toast from 'react-hot-toast'
 import { withAuth } from '../hooks/useAuth'
 import { 
   ChartBarIcon, 
@@ -8,62 +9,102 @@ import {
   CalendarIcon,
   ClockIcon
 } from '@heroicons/react/24/outline'
+import { api, endpoints, type Analytics } from '../utils/api'
 
-interface Analytics {
-  productivity: {
-    total_tasks: number
-    completed_tasks: number
-    completion_rate: number
-    total_commits: number
-    avg_daily_commits: number
-  }
-  weekly_summary: {
-    tasks_completed: number
-    tasks_created: number
-    commits: number
-    active_projects: number
-    productivity_score: number
-  }
-  trends: Array<{
-    week_start: string
-    tasks_completed: number
-    commits: number
-    productivity_score: number
-  }>
-}
-
-const Analytics: NextPage = () => {
+const AnalyticsPage: NextPage = () => {
   const [analytics, setAnalytics] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState('30')
 
   useEffect(() => {
-    // TODO: Fetch analytics from API
-    // For now, show placeholder data
-    setAnalytics({
-      productivity: {
-        total_tasks: 45,
-        completed_tasks: 23,
-        completion_rate: 51.1,
-        total_commits: 47,
-        avg_daily_commits: 1.6
-      },
-      weekly_summary: {
-        tasks_completed: 8,
-        tasks_created: 12,
-        commits: 15,
-        active_projects: 3,
-        productivity_score: 78
-      },
-      trends: [
-        { week_start: "2024-10-21", tasks_completed: 5, commits: 8, productivity_score: 65 },
-        { week_start: "2024-10-28", tasks_completed: 7, commits: 12, productivity_score: 72 },
-        { week_start: "2024-11-04", tasks_completed: 6, commits: 10, productivity_score: 68 },
-        { week_start: "2024-11-11", tasks_completed: 8, commits: 15, productivity_score: 78 }
-      ]
-    })
-    setLoading(false)
+    fetchAnalytics()
   }, [timeRange])
+
+  const fetchAnalytics = async () => {
+    try {
+      setLoading(true)
+      
+      // Fetch productivity analytics
+      const productivityResponse = await api.get<Analytics['productivity']>(
+        `${endpoints.analytics.productivity}?days=${timeRange}`
+      )
+      
+      // Fetch weekly summary
+      const weeklyResponse = await api.get<Analytics['weekly_summary']>(
+        endpoints.analytics.weekly
+      )
+      
+      // Fetch trends
+      const trendsResponse = await api.get<Analytics['trends']>(
+        endpoints.analytics.trends
+      )
+
+      if (productivityResponse.success && weeklyResponse.success && trendsResponse.success) {
+        setAnalytics({
+          productivity: productivityResponse.data || {
+            total_tasks: 0,
+            completed_tasks: 0,
+            completion_rate: 0,
+            total_commits: 0,
+            avg_daily_commits: 0
+          },
+          weekly_summary: weeklyResponse.data || {
+            tasks_completed: 0,
+            tasks_created: 0,
+            commits: 0,
+            active_projects: 0,
+            productivity_score: 0
+          },
+          trends: trendsResponse.data || [],
+          daily_activity: []
+        })
+      } else {
+        toast.error('Failed to fetch analytics data')
+        // Set default empty data
+        setAnalytics({
+          productivity: {
+            total_tasks: 0,
+            completed_tasks: 0,
+            completion_rate: 0,
+            total_commits: 0,
+            avg_daily_commits: 0
+          },
+          weekly_summary: {
+            tasks_completed: 0,
+            tasks_created: 0,
+            commits: 0,
+            active_projects: 0,
+            productivity_score: 0
+          },
+          trends: [],
+          daily_activity: []
+        })
+      }
+    } catch (error) {
+      toast.error('Error fetching analytics')
+      // Set default empty data
+      setAnalytics({
+        productivity: {
+          total_tasks: 0,
+          completed_tasks: 0,
+          completion_rate: 0,
+          total_commits: 0,
+          avg_daily_commits: 0
+        },
+        weekly_summary: {
+          tasks_completed: 0,
+          tasks_created: 0,
+          commits: 0,
+          active_projects: 0,
+          productivity_score: 0
+        },
+        trends: [],
+        daily_activity: []
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600 bg-green-100'
@@ -336,4 +377,4 @@ const Analytics: NextPage = () => {
   )
 }
 
-export default withAuth(Analytics)
+export default withAuth(AnalyticsPage)
