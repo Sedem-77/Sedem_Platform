@@ -32,6 +32,12 @@ async def github_login(request: GitHubLoginRequest, db: Session = Depends(get_da
     try:
         # Exchange code for access token
         token_data = await github_service.exchange_code_for_token(request.code)
+        
+        # Check if token exchange was successful
+        if "access_token" not in token_data:
+            error_description = token_data.get("error_description", "Unknown error")
+            raise Exception(f"Token exchange failed: {error_description}")
+        
         access_token = token_data["access_token"]
         
         # Get user information from GitHub

@@ -29,7 +29,14 @@ class GitHubService:
             if response.status_code != 200:
                 raise Exception(f"GitHub token exchange failed: {response.text}")
             
-            return response.json()
+            token_data = response.json()
+            
+            # Check for OAuth error response
+            if "error" in token_data:
+                error_msg = token_data.get("error_description", token_data.get("error", "Unknown error"))
+                raise Exception(f"OAuth error: {error_msg}")
+            
+            return token_data
     
     async def get_user_info(self, access_token: str) -> Dict[str, Any]:
         """Get user information from GitHub API"""
