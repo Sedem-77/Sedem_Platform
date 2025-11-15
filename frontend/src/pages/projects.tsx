@@ -30,10 +30,16 @@ const Projects: NextPage = () => {
       if (response.success && response.data) {
         setProjects(response.data)
       } else {
-        toast.error(response.error || 'Failed to fetch projects')
+        console.log('Failed to fetch projects:', response.error)
+        // Don't show error toast for authentication issues, just show empty state
+        if (!response.error?.includes('authentication') && !response.error?.includes('Unauthorized')) {
+          toast.error(response.error || 'Failed to fetch projects')
+        }
+        setProjects([]) // Set empty array instead of keeping loading state
       }
     } catch (error) {
-      toast.error('Error fetching projects')
+      console.log('Error fetching projects:', error)
+      setProjects([]) // Set empty array for any network errors
     } finally {
       setLoading(false)
     }

@@ -81,8 +81,8 @@ const AnalyticsPage: NextPage = () => {
         })
       }
     } catch (error) {
-      toast.error('Error fetching analytics')
-      // Set default empty data
+      console.log('Error fetching analytics:', error)
+      // Set default empty data without showing error toast for auth issues
       setAnalytics({
         productivity: {
           total_tasks: 0,

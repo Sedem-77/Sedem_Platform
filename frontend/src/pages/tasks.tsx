@@ -35,10 +35,16 @@ const Tasks: NextPage = () => {
       if (response.success && response.data) {
         setTasks(response.data)
       } else {
-        toast.error(response.error || 'Failed to fetch tasks')
+        console.log('Failed to fetch tasks:', response.error)
+        // Don't show error toast for authentication issues, just show empty state
+        if (!response.error?.includes('authentication') && !response.error?.includes('Unauthorized')) {
+          toast.error(response.error || 'Failed to fetch tasks')
+        }
+        setTasks([]) // Set empty array instead of keeping loading state
       }
     } catch (error) {
-      toast.error('Error fetching tasks')
+      console.log('Error fetching tasks:', error)
+      setTasks([]) // Set empty array for any network errors
     } finally {
       setLoading(false)
     }

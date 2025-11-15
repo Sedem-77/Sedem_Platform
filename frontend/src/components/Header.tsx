@@ -2,6 +2,7 @@ import { Menu, Transition } from '@headlessui/react'
 import { BellIcon, Bars3Icon } from '@heroicons/react/24/outline'
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { Fragment } from 'react'
+import Link from 'next/link'
 import { useAuth } from '../hooks/useAuth'
 import { clsx } from 'clsx'
 
@@ -85,16 +86,28 @@ const Header = ({ setSidebarOpen }: HeaderProps) => {
                 {userNavigation.map((item) => (
                   <Menu.Item key={item.name}>
                     {({ active }) => (
-                      <a
-                        href={item.href}
-                        onClick={item.onClick}
-                        className={clsx(
-                          active ? 'bg-gray-100' : '',
-                          'block px-4 py-2 text-sm text-gray-700 cursor-pointer'
-                        )}
-                      >
-                        {item.name}
-                      </a>
+                      item.onClick ? (
+                        <a
+                          href={item.href}
+                          onClick={item.onClick}
+                          className={clsx(
+                            active ? 'bg-gray-100' : '',
+                            'block px-4 py-2 text-sm text-gray-700 cursor-pointer'
+                          )}
+                        >
+                          {item.name}
+                        </a>
+                      ) : (
+                        <Link
+                          href={item.href}
+                          className={clsx(
+                            active ? 'bg-gray-100' : '',
+                            'block px-4 py-2 text-sm text-gray-700 cursor-pointer'
+                          )}
+                        >
+                          {item.name}
+                        </Link>
+                      )
                     )}
                   </Menu.Item>
                 ))}
