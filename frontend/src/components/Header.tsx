@@ -67,7 +67,7 @@ const Header = ({ setSidebarOpen }: HeaderProps) => {
                 <img
                   className="h-8 w-8 rounded-full"
                   src={user?.avatar_url || '/default-avatar.png'}
-                  alt={user?.full_name || user?.username || 'User avatar'}
+                  alt={user?.full_name || user?.github_username || 'User avatar'}
                 />
                 <ChevronDownIcon className="ml-2 h-4 w-4 text-gray-400" />
               </Menu.Button>
