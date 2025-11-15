@@ -43,8 +43,6 @@ const TimelinePage: NextPage = () => {
       setLoading(true)
       setError(null)
       
-      console.log('Fetching timeline data...', { activityType, projectFilter, searchQuery, dateRange, currentPage })
-      
       const params = new URLSearchParams({
         activity_type: activityType,
         limit: itemsPerPage.toString(),
@@ -60,16 +58,11 @@ const TimelinePage: NextPage = () => {
         params.append('search', searchQuery.trim())
       }
       
-      const url = `${endpoints.timeline.activities}?${params}`
-      console.log('Timeline API URL:', url)
-      
-      const response = await api.get<TimelineData>(url)
-      console.log('Timeline API response:', response)
+      const response = await api.get<TimelineData>(`${endpoints.timeline.activities}?${params}`)
       
       if (response.success && response.data) {
         setTimelineData(response.data)
       } else {
-        console.error('Timeline API error:', response.error)
         setError(response.error || 'Failed to load timeline data')
       }
     } catch (error) {
@@ -339,24 +332,37 @@ const TimelinePage: NextPage = () => {
 
         {/* Timeline */}
         <div className="bg-white shadow rounded-lg">
-          {timelineData?.activities?.length === 0 ? (
+          {(!timelineData || timelineData?.activities?.length === 0) ? (
             <div className="text-center py-16">
-              <ExclamationTriangleIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Activities Found</h3>
+              <ClockIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {!timelineData ? 'Loading Timeline...' : 'No Activities Found'}
+              </h3>
               <p className="text-gray-500 mb-6">
-                {searchQuery || activityType !== 'all' 
-                  ? 'Try adjusting your filters or search terms'
-                  : 'Start creating projects and tasks to see your activity timeline'
+                {!timelineData 
+                  ? 'Getting your activity timeline ready...'
+                  : searchQuery || activityType !== 'all' 
+                    ? 'Try adjusting your filters or search terms'
+                    : 'Start creating projects and tasks to see your activity timeline'
                 }
               </p>
-              {!searchQuery && activityType === 'all' && (
-                <Link
-                  href="/projects"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg inline-flex items-center"
-                >
-                  <FolderIcon className="h-5 w-5 mr-2" />
-                  Create Project
-                </Link>
+              {timelineData && !searchQuery && activityType === 'all' && (
+                <div className="space-x-4">
+                  <Link
+                    href="/projects"
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg inline-flex items-center"
+                  >
+                    <FolderIcon className="h-5 w-5 mr-2" />
+                    Create Project
+                  </Link>
+                  <Link
+                    href="/github"
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg inline-flex items-center"
+                  >
+                    <CodeBracketIcon className="h-5 w-5 mr-2" />
+                    Connect GitHub
+                  </Link>
+                </div>
               )}
             </div>
           ) : (
