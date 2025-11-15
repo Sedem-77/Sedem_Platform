@@ -7,18 +7,22 @@ from ..services.github_service import GitHubService
 import httpx
 import os
 from typing import Dict, Any
+from pydantic import BaseModel
 
 router = APIRouter()
 security = HTTPBearer()
 github_service = GitHubService()
 
+class GitHubLoginRequest(BaseModel):
+    code: str
+
 @router.post("/github/login")
-async def github_login(code: str, db: Session = Depends(get_database)):
+async def github_login(request: GitHubLoginRequest, db: Session = Depends(get_database)):
     """Exchange GitHub authorization code for access token and create/update user"""
     
     try:
         # Exchange code for access token
-        token_data = await github_service.exchange_code_for_token(code)
+        token_data = await github_service.exchange_code_for_token(request.code)
         access_token = token_data["access_token"]
         
         # Get user information from GitHub
