@@ -7,8 +7,8 @@ from typing import Dict, List, Any, Optional
 
 class GitHubService:
     def __init__(self):
-        self.client_id = os.getenv("GITHUB_CLIENT_ID")
-        self.client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+        self.client_id = os.getenv("GITHUB_CLIENT_ID", "").strip()
+        self.client_secret = os.getenv("GITHUB_CLIENT_SECRET", "").strip()
         self.jwt_secret = os.getenv("JWT_SECRET_KEY", "your-secret-key")
         self.jwt_algorithm = "HS256"
         
