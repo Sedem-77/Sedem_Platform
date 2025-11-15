@@ -18,6 +18,7 @@ const CommitActivityPage: NextPage = () => {
   const [achievementsData, setAchievementsData] = useState<CodingAchievements | null>(null)
   const [languageStats, setLanguageStats] = useState<LanguageStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState('weekly')
   const [selectedDays, setSelectedDays] = useState(90)
 
@@ -28,6 +29,7 @@ const CommitActivityPage: NextPage = () => {
   const fetchCommitData = async () => {
     try {
       setLoading(true)
+      setError(null)
       
       const [heatmap, trends, achievements, languages] = await Promise.all([
         api.get<CommitHeatmapData>(`${endpoints.commits.heatmap}?days=365`),
@@ -52,7 +54,8 @@ const CommitActivityPage: NextPage = () => {
         setLanguageStats(languages.data)
       }
     } catch (error) {
-      console.log('Error fetching commit data:', error)
+      console.error('Error fetching commit data:', error)
+      setError('Failed to load commit activity data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -85,7 +88,28 @@ const CommitActivityPage: NextPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading commit activity...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+          <button
+            onClick={fetchCommitData}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     )
   }
@@ -108,6 +132,26 @@ const CommitActivityPage: NextPage = () => {
             Track your coding productivity and development patterns
           </p>
         </div>
+
+        {/* No Data State */}
+        {!heatmapData && !trendsData && !achievementsData && !languageStats && (
+          <div className="text-center py-16">
+            <div className="bg-white rounded-lg shadow-sm border-2 border-dashed border-gray-300 p-8">
+              <CodeBracketIcon className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Commit Data Available</h3>
+              <p className="text-gray-500 mb-6">
+                Connect your GitHub repositories to start tracking your commit activity and coding patterns.
+              </p>
+              <button
+                onClick={() => window.location.href = '/github'}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg inline-flex items-center"
+              >
+                <CodeBracketIcon className="h-5 w-5 mr-2" />
+                Connect GitHub
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
