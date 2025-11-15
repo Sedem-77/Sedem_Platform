@@ -252,6 +252,78 @@ export interface GitHubActivity {
   total_deletions: number
 }
 
+export interface CommitHeatmapDay {
+  date: string
+  commits: number
+  additions: number
+  deletions: number
+  level: number // 0-4 intensity level
+}
+
+export interface CommitHeatmapData {
+  heatmap_data: CommitHeatmapDay[]
+  total_commits: number
+  streak_data: {
+    current_streak: number
+    longest_streak: number
+  }
+  date_range: {
+    start: string
+    end: string
+  }
+}
+
+export interface CommitTrendData {
+  period: string
+  commits: number
+  additions: number
+  deletions: number
+}
+
+export interface CommitTrends {
+  trends: CommitTrendData[]
+  summary: {
+    total_commits: number
+    total_additions: number
+    total_deletions: number
+    net_lines: number
+    avg_commits_per_day: number
+    active_days: number
+    repositories_touched: number
+  }
+}
+
+export interface LanguageStats {
+  language_stats: Array<{
+    repository: string
+    commits: number
+    additions: number
+    deletions: number
+    net_changes: number
+  }>
+}
+
+export interface Achievement {
+  title: string
+  description: string
+  icon: string
+  earned: boolean
+  date_earned: string
+}
+
+export interface CodingAchievements {
+  achievements: Achievement[]
+  milestones: {
+    total_commits: number
+    total_additions: number
+    total_repositories: number
+    next_commit_milestone: number
+    next_loc_milestone: number
+    commit_progress: number
+    loc_progress: number
+  }
+}
+
 // API endpoints
 export const endpoints = {
   auth: {
@@ -285,5 +357,11 @@ export const endpoints = {
     link: (repoId: number) => `/api/github/repositories/${repoId}/link`,
     commits: (repoId: number) => `/api/github/repositories/${repoId}/commits`,
     activity: '/api/github/activity',
+  },
+  commits: {
+    heatmap: '/api/commits/activity/heatmap',
+    trends: '/api/commits/activity/trends',
+    languages: '/api/commits/activity/languages',
+    achievements: '/api/commits/activity/achievements',
   },
 }

@@ -192,6 +192,160 @@ async def get_repository_commits(
         ]
     }
 
+@router.get("/analytics/commits")
+async def get_commit_analytics(
+    days: int = Query(30, description="Number of days to analyze"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database)
+):
+    """Get commit analytics for the user"""
+    from datetime import datetime, timedelta
+    from sqlalchemy import func
+    
+    # Calculate date range
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=days)
+    
+    # Get user's repositories
+    user_repos = db.query(GitHubRepo).filter(GitHubRepo.user_id == current_user.id).all()
+    repo_ids = [repo.id for repo in user_repos]
+    
+    if not repo_ids:
+        return {
+            "total_commits": 0,
+            "daily_commits": [],
+            "weekly_stats": {},
+            "language_stats": {},
+            "recent_commits": []
+        }
+    
+    # Get commits in date range
+    commits_query = db.query(GitHubCommit).filter(
+        GitHubCommit.repo_id.in_(repo_ids),
+        GitHubCommit.commit_date >= start_date,
+        GitHubCommit.commit_date <= end_date
+    )
+    
+    all_commits = commits_query.all()
+    
+    # Daily commit counts
+    daily_commits = {}
+    for commit in all_commits:
+        date_str = commit.commit_date.strftime('%Y-%m-%d')
+        daily_commits[date_str] = daily_commits.get(date_str, 0) + 1
+    
+    # Fill in missing days with 0
+    current_date = start_date
+    daily_commit_list = []
+    while current_date <= end_date:
+        date_str = current_date.strftime('%Y-%m-%d')
+        daily_commit_list.append({
+            "date": date_str,
+            "commits": daily_commits.get(date_str, 0)
+        })
+        current_date += timedelta(days=1)
+    
+    # Weekly stats
+    total_commits = len(all_commits)
+    total_additions = sum(commit.additions for commit in all_commits)
+    total_deletions = sum(commit.deletions for commit in all_commits)
+    
+    # Recent commits (last 10)
+    recent_commits = commits_query.order_by(GitHubCommit.commit_date.desc()).limit(10).all()
+    
+    return {
+        "total_commits": total_commits,
+        "total_additions": total_additions,
+        "total_deletions": total_deletions,
+        "daily_commits": daily_commit_list,
+        "weekly_stats": {
+            "avg_commits_per_day": total_commits / days if days > 0 else 0,
+            "most_active_day": max(daily_commits.items(), key=lambda x: x[1]) if daily_commits else ("", 0),
+            "current_streak": _calculate_commit_streak(daily_commit_list)
+        },
+        "recent_commits": [
+            {
+                "sha": commit.sha,
+                "message": commit.message,
+                "author_name": commit.author_name,
+                "commit_date": commit.commit_date,
+                "additions": commit.additions,
+                "deletions": commit.deletions,
+                "repository": next((repo.name for repo in user_repos if repo.id == commit.repo_id), "Unknown")
+            }
+            for commit in recent_commits
+        ]
+    }
+
+def _calculate_commit_streak(daily_commits):
+    """Calculate current commit streak"""
+    streak = 0
+    for day in reversed(daily_commits):
+        if day["commits"] > 0:
+            streak += 1
+        else:
+            break
+    return streak
+
+@router.get("/analytics/activity")
+async def get_activity_heatmap(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_database)
+):
+    """Get activity heatmap data (365 days)"""
+    from datetime import datetime, timedelta
+    
+    # Calculate one year range
+    end_date = datetime.utcnow()
+    start_date = end_date - timedelta(days=365)
+    
+    # Get user's repositories
+    user_repos = db.query(GitHubRepo).filter(GitHubRepo.user_id == current_user.id).all()
+    repo_ids = [repo.id for repo in user_repos]
+    
+    if not repo_ids:
+        return {"heatmap_data": []}
+    
+    # Get commits for the year
+    commits = db.query(GitHubCommit).filter(
+        GitHubCommit.repo_id.in_(repo_ids),
+        GitHubCommit.commit_date >= start_date,
+        GitHubCommit.commit_date <= end_date
+    ).all()
+    
+    # Group by date
+    daily_activity = {}
+    for commit in commits:
+        date_str = commit.commit_date.strftime('%Y-%m-%d')
+        if date_str not in daily_activity:
+            daily_activity[date_str] = {
+                "date": date_str,
+                "count": 0,
+                "additions": 0,
+                "deletions": 0
+            }
+        daily_activity[date_str]["count"] += 1
+        daily_activity[date_str]["additions"] += commit.additions
+        daily_activity[date_str]["deletions"] += commit.deletions
+    
+    # Fill in all days
+    heatmap_data = []
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime('%Y-%m-%d')
+        if date_str in daily_activity:
+            heatmap_data.append(daily_activity[date_str])
+        else:
+            heatmap_data.append({
+                "date": date_str,
+                "count": 0,
+                "additions": 0,
+                "deletions": 0
+            })
+        current_date += timedelta(days=1)
+    
+    return {"heatmap_data": heatmap_data}
+
 @router.post("/webhook")
 async def github_webhook(
     payload: dict,
