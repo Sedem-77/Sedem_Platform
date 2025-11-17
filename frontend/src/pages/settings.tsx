@@ -149,7 +149,7 @@ const Settings: NextPage = () => {
                     <input 
                       type="text" 
                       value={user?.full_name || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -158,7 +158,7 @@ const Settings: NextPage = () => {
                     <input 
                       type="email" 
                       value={user?.email || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-gray-50"
                       disabled
                     />
                     <p className="text-xs text-gray-500 mt-1">Email is synced from your GitHub account</p>
@@ -168,7 +168,7 @@ const Settings: NextPage = () => {
                     <input 
                       type="text" 
                       value={user?.github_username || ''}
-                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50"
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 bg-gray-50"
                       disabled
                     />
                   </div>

@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 from .database import engine, SessionLocal, Base
-from .routes import auth, projects, tasks, analytics, github_integration, commit_analytics, timeline
+from .routes import auth, projects, tasks, analytics, github_integration, commit_analytics
 from .services.scheduler import start_scheduler
 from .utils.logger import setup_logger
 from .models import *  # Import all models to ensure tables are created
@@ -70,7 +70,6 @@ app.include_router(tasks.router, prefix="/api/tasks", tags=["Tasks"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(github_integration.router, prefix="/api/github", tags=["GitHub"])
 app.include_router(commit_analytics.router, prefix="/api/commits", tags=["Commit Analytics"])
-app.include_router(timeline.router, prefix="/api/timeline", tags=["Timeline"])
 
 @app.on_event("startup")
 async def startup_event():

@@ -342,7 +342,7 @@ const Tasks: NextPage = () => {
                     value={formData.title}
                     onChange={handleInputChange}
                     required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Enter task title"
                   />
                 </div>
@@ -356,7 +356,7 @@ const Tasks: NextPage = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Describe the task"
                   />
                 </div>
@@ -370,7 +370,7 @@ const Tasks: NextPage = () => {
                       name="priority"
                       value={formData.priority}
                       onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     >
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
@@ -387,7 +387,7 @@ const Tasks: NextPage = () => {
                       value={formData.project_id}
                       onChange={handleInputChange}
                       required
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     >
                       <option value="">Select project</option>
                       {projects.map(project => (
@@ -408,7 +408,7 @@ const Tasks: NextPage = () => {
                     name="due_date"
                     value={formData.due_date}
                     onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
 
